@@ -59,6 +59,12 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def event(stage, status, detail, run_id):
+    stamp = now()
+    put('agents', stage, {'status': status, 'task': detail, 'updated_at': stamp, 'run_id': run_id})
+    put('log', f'{run_id}-{stage}-{stamp}', {'agent': stage, 'ts': stamp, 'text': detail, 'run_id': run_id})
+
+
 @app.middleware('http')
 async def auth(request: Request, call_next):
     if request.url.path.startswith('/api/') or request.url.path.startswith('/_blob/'):
@@ -155,13 +161,15 @@ def ingest(entry, origin):
 
 def run_search():
     start = now()
-    put('agents', 'search', {'status': 'running', 'updated_at': start})
+    run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+    event('scout', 'working', 'Начата проверка подключённых RSS/Atom-источников', run_id)
     found, errors = 0, []
     try:
         with httpx.Client(timeout=18, follow_redirects=False, trust_env=False, headers={'User-Agent': 'OfficeAgents/1.0 (+personal RSS reader)'}) as client:
             for source in all_records('sources'):
                 if source.get('status') == 'off':
                     continue
+                event('scout', 'working', 'Проверяю: ' + str(source.get('name', 'источник')), run_id)
                 url = source.get('url', '')
                 parsed = urlparse(url)
                 if parsed.scheme != 'https' or not parsed.hostname or parsed.hostname in ('localhost', '127.0.0.1'):
@@ -175,16 +183,22 @@ def run_search():
                         raise ValueError('Это не RSS/Atom')
                     count = sum(ingest(entry, source.get('name', parsed.hostname)) for entry in feed.entries[:200])
                     found += count
+                    event('scout', 'working', f'{source.get("name", "Источник")}: новых объявлений {count}', run_id)
                     put('sources', source['id'], {**source, 'found': source.get('found', 0) + count, 'last_checked': now()})
                 except Exception as error:
                     errors.append(f'{source.get("name", url)}: {str(error)[:140]}')
-        rid = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+        event('scout', 'done', f'Проверка источников окончена: новых {found}, ошибок {len(errors)}', run_id)
+        event('reporter', 'working', 'Сохраняю результаты и PDF-отчёт', run_id)
+        rid = run_id
         put('reports', rid, {'title': 'Отчёт о поиске', 'date': now(), 'kind': 'agent', 'objects': found, 'errors': errors, 'asset_id': rid})
-        put('meta', 'run', {'last': now(), 'found': found, 'errors': errors})
-        put('log', rid, {'ts': now(), 'agent': 'search', 'text': f'Новых объектов: {found}. Ошибок: {len(errors)}'})
+        put('meta', 'run', {'last': now(), 'found': found, 'errors': errors, 'source': 'Сервер Офиса агентов', 'run_id': run_id})
+        event('reporter', 'done', 'Отчёт доступен для скачивания', run_id)
         return {'new': found, 'errors': errors}
+    except Exception as error:
+        event('scout', 'error', f'Сбой поиска: {str(error)[:180]}', run_id)
+        raise
     finally:
-        put('agents', 'search', {'status': 'done', 'updated_at': now()})
+        pass
 
 
 @app.post('/api/run')
