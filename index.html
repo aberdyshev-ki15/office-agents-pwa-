@@ -1,0 +1,480 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Офис агентов</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="theme-color" content="#efedea">
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});</script>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+/* Одна колонка, как приложение: итог сверху, вкладки снизу (стиль «Мои расчёты») */
+:root{--bg:#efedea;--card:#fbfaf8;--fg:#262523;--mute:#85817b;--line:#e2ded8;--acc:#4d4a45;--accs:#e2ded8;--onacc:#fbfaf8;--mark:#4d4a45;
+--red:#9b3a2e;--reds:#f6e3df;--ok:#3f7a4c;--oks:#e3eee3;--amb:#7a5a12;--ambs:#f5ecd6;--bar:#9fd3a8;
+--av1:#e4d8c8;--av1t:#6b5236;--av3:#dfe3d3;--av3t:#4b5634;
+--skin:#e8b99a;--hair:#3b3632;--shirt1:#8fa58f;--shirt2:#b3a48d;--shirt3:#c2a66a;--shirt4:#8c8279;--shirt5:#a8877a;--shirt6:#9a948b;--shirt7:#c9b9a0;--pants:#4d4a45;
+--f:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1a19;--card:#252422;--fg:#ece9e4;--mute:#9b968f;--line:#35332f;--acc:#3a3834;--accs:#35332f;--onacc:#f3f0ea;--mark:#cfc9bf;
+--red:#ec9a8e;--reds:#3d2420;--ok:#93c79e;--oks:#22322a;--amb:#e3c27a;--ambs:#3a311d;--bar:#8cc897;--av1:#4a3e30;--av1t:#ead9c2;--av3:#3a4130;--av3t:#d5dec0;
+--hair:#1b1a19;--pants:#cfc9bf;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1a19;--card:#252422;--fg:#ece9e4;--mute:#9b968f;--line:#35332f;--acc:#3a3834;--accs:#35332f;--onacc:#f3f0ea;--mark:#cfc9bf;
+--red:#ec9a8e;--reds:#3d2420;--ok:#93c79e;--oks:#22322a;--amb:#e3c27a;--ambs:#3a311d;--bar:#8cc897;--av1:#4a3e30;--av1t:#ead9c2;--av3:#3a4130;--av3t:#d5dec0;
+--hair:#1b1a19;--pants:#cfc9bf;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 100px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.col{display:flex;flex-direction:column;gap:10px}
+h1{font-size:22px;margin:0;font-weight:800}
+h2{font-size:13px;margin:4px 0 0;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.num{font-variant-numeric:tabular-nums}
+.t{color:var(--mute);font-size:13px}
+.total{background:var(--acc);color:var(--onacc);border-radius:16px;padding:16px 18px}
+.total small{opacity:.8;font-size:13px}.total b{display:block;font-size:34px;line-height:1.15;font-weight:800}
+.tsub{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;font-size:12px;text-align:center}
+.tsub div{background:color-mix(in srgb,var(--onacc) 12%,transparent);border-radius:8px;padding:6px 2px}.tsub b{display:block;font-size:17px;line-height:1.2}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mute);cursor:pointer}
+.chip.on{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+.obj{display:flex;gap:12px;align-items:center;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.obj>div{min-width:0;flex:1}.obj .n{font-weight:700;font-size:15.5px;line-height:1.3}
+.objw{display:flex;flex-direction:column}.objw .obj{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.mini{display:flex;justify-content:flex-end;gap:2px;background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:2px 8px}
+.mini button{white-space:nowrap;background:none;border:0;font:inherit;font-size:12.5px;font-weight:600;color:var(--mute);padding:6px 8px;cursor:pointer;border-radius:8px}
+.mini button.del{color:var(--red)}.mini button:hover{background:var(--bg)}
+.av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:16px}
+.rk1{background:var(--oks);color:var(--ok)}.rk2{background:var(--av3);color:var(--av3t)}.rk3{background:var(--ambs);color:var(--amb)}.rk4{background:var(--av1);color:var(--av1t)}.rk5{background:var(--reds);color:var(--red)}
+.pill{font-weight:800;padding:6px 10px;border-radius:999px;white-space:nowrap;font-size:14px}
+.p-ok{background:var(--oks);color:var(--ok)}.p-z{background:var(--accs);color:var(--mark)}.p-w{background:var(--ambs);color:var(--amb)}.p-d{background:var(--reds);color:var(--red)}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin:4px 4px 0 0}
+.tag.g{color:var(--ok);border-color:var(--ok)}.tag.w{color:var(--amb);border-color:var(--amb)}.tag.d{color:var(--red);border-color:var(--red)}.tag.m{color:var(--mark);border-color:var(--mark)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}.row>div{min-width:0}
+.amt{font-weight:700;white-space:nowrap}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big div{background:var(--bg);border-radius:12px;padding:10px 12px}.big small{display:block;color:var(--mute);font-size:12px;font-weight:600}.big b{font-size:19px}
+.big .hl{background:var(--oks)}.big .hl b{color:var(--ok)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv div{background:var(--bg);border-radius:10px;padding:8px 10px}.kv small{display:block;color:var(--mute);font-size:12px;font-weight:600}.kv b{font-size:14px}
+.kv .g{background:var(--oks)}.kv .g b{color:var(--ok)}.kv .w{background:var(--ambs)}.kv .w b{color:var(--amb)}.kv .d{background:var(--reds)}.kv .d b{color:var(--red)}
+.note{border-radius:12px;padding:10px 12px;font-size:14px}.note.g{background:var(--oks)}.note.w{background:var(--ambs)}.note.d{background:var(--reds)}
+.msgbox{background:var(--bg);border-radius:12px;padding:12px;white-space:pre-wrap;font-size:14px}
+ol.q{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+button.main{width:100%;font:inherit;font-weight:700;font-size:16px;padding:13px;border:0;border-radius:12px;background:var(--acc);color:var(--onacc);cursor:pointer}
+button.sec{font:inherit;font-size:14px;font-weight:600;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);cursor:pointer}
+button.sec.on{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+button.back{background:none;border:0;font:inherit;font-weight:700;color:var(--mute);padding:4px 0;cursor:pointer;text-align:left}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+textarea{width:100%;font:inherit;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+a{color:var(--mark)}
+.msg{text-align:center;color:var(--mute);padding:16px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;max-width:90vw;z-index:30}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));z-index:20}
+nav button{background:none;border:0;font:inherit;font-size:11px;font-weight:700;color:var(--mute);padding:7px 2px;border-radius:10px;cursor:pointer}
+nav button.on{color:var(--fg);background:var(--accs)}
+nav svg{width:22px;height:22px;display:block;margin:0 auto 2px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.meter{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.meter i{display:block;height:100%;background:var(--mark)}
+/* команда */
+.desk{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.scene{height:96px;background:var(--bg);border-radius:10px;overflow:hidden}.scene svg{width:100%;height:96px;display:block}
+.dinfo{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:0 4px}.dinfo>div{min-width:0}
+.p-skin{fill:var(--skin)}.p-hair{fill:var(--hair)}.p-furn{fill:var(--line)}.p-furn2{fill:var(--mute);opacity:.55}.p-screen{fill:var(--card)}.p-glow{fill:var(--bar);opacity:.3}.p-bed{fill:var(--card)}.p-floor{stroke:var(--line);stroke-width:1}
+.p-man{transition:transform 1.6s ease-in-out}.p-upper{transition:transform .4s ease}.p-legs-stand{transition:opacity .2s}.p-legs-sit{opacity:0;transition:opacity .2s}
+.pos-desk:not(.running) .p-legs-stand{opacity:0}.pos-desk:not(.running) .p-legs-sit{opacity:1}.pos-desk:not(.running) .p-upper{transform:translateY(10px)}
+.pos-bed .p-man{transform:translateX(-112px)}.pos-bed:not(.running) .p-man{opacity:0}
+.p-sleeper{opacity:0;transition:opacity .3s}.pos-bed:not(.running) .p-sleeper{opacity:1}
+.p-arm,.p-leg,.p-head,.p-body{transform-box:fill-box}.p-leg{transform-origin:center top}.p-head{transform-origin:center bottom}
+.running .p-legL{animation:run .3s linear infinite alternate}.running .p-legR{animation:run .3s linear infinite alternate-reverse}
+.running .p-armL{animation:run .3s linear infinite alternate-reverse;transform-origin:right top}.running .p-armR{animation:run .3s linear infinite alternate;transform-origin:left top}
+.running .p-man{animation:bob .15s ease-in-out infinite alternate}.pos-bed.running .p-man{animation:none}
+.p-blanket{animation:breathe 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+.working:not(.running) .p-armL{animation:type .35s ease-in-out infinite alternate;transform-origin:right top}
+.working:not(.running) .p-armR{animation:type .35s ease-in-out infinite alternate-reverse;transform-origin:left top}
+.working:not(.running) .p-head{animation:nod 1.4s ease-in-out infinite}.working .p-glow{animation:glow 1.2s ease-in-out infinite}
+.done:not(.running) .p-armR{transform:rotate(-140deg);transform-origin:left top;animation:wave .6s ease-in-out infinite alternate}
+.error:not(.running) .p-head{animation:shake .5s ease-in-out infinite}
+.p-zz{opacity:0}.pos-bed:not(.running) .p-zz{animation:zz 3s ease-in-out infinite}.p-ok{opacity:0}.done:not(.running) .p-ok{opacity:1}
+@keyframes run{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}@keyframes bob{to{translate:0 -2px}}@keyframes breathe{50%{transform:scaleY(1.12)}}
+@keyframes type{to{transform:translateY(3px)}}@keyframes nod{50%{transform:rotate(5deg)}}@keyframes glow{50%{opacity:.6}}
+@keyframes wave{to{transform:rotate(-115deg)}}@keyframes shake{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}50%{opacity:.8}100%{opacity:0;transform:translate(6px,-10px)}}
+@media (prefers-reduced-motion:reduce){.scene *{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div><h1>Офис агентов</h1><div class="t" id="lastRun">Комнаты, гостинки и доли · Красноярск</div></div>
+  <div id="view"><p class="msg">Загружаю объекты…</p></div>
+</div>
+<nav>
+  <button data-t="objects" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Объекты</button>
+  <button data-t="reports"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>Отчёты</button>
+  <button data-t="sources"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Источники</button>
+  <button data-t="stats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
+  <button data-t="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14c2 .8 3 3 3 6"/></svg>Команда</button>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* Совместимый адаптер собственного сервера вместо закрытого Claude runtime. */
+const officeToken=localStorage.getItem('office_token')||prompt('Ключ доступа к Офису агентов (если ключ не настроен — оставьте пустым)')||'';
+if(officeToken)localStorage.setItem('office_token',officeToken);
+async function officeApi(url,opts={}){
+  const res=await fetch(url,{...opts,headers:{'Authorization':'Bearer '+officeToken,...opts.headers}});
+  if(!res.ok)throw Error('HTTP '+res.status);
+  return res.headers.get('content-type')?.includes('json')?res.json():res.blob();
+}
+function collection(bucket){
+  const doc=id=>({set:body=>officeApi('/api/'+bucket+'/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),update:body=>officeApi('/api/'+bucket+'/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),delete:()=>officeApi('/api/'+bucket+'/'+encodeURIComponent(id),{method:'DELETE'}),onSnapshot:callback=>pollDoc(bucket,id,callback)});
+  return {doc,onSnapshot:callback=>pollList(bucket,callback),orderBy:()=>({limit:()=>({onSnapshot:callback=>pollList(bucket,callback)})})};
+}
+function pollList(bucket,callback){
+  const refresh=async()=>{try{const rows=await officeApi('/api/'+bucket);callback({docs:rows.map(row=>({id:row.id,data:()=>row}))})}catch(e){}};
+  refresh();setInterval(refresh,15000);
+}
+function pollDoc(bucket,id,callback){
+  const refresh=async()=>{try{const rows=await officeApi('/api/'+bucket);const row=rows.find(x=>x.id===id);callback({data:()=>row||null})}catch(e){}};
+  refresh();setInterval(refresh,15000);
+}
+window.claude={use:async name=>{
+ if(name==='db')return {collection,doc:path=>{const [bucket,id]=path.split('/');return collection(bucket).doc(id)}};
+ if(name==='mcp')return {callTool:async()=>officeApi('/api/run',{method:'POST'})};
+ if(name==='downloads')return {save:async({filename,data})=>{const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}};
+ throw Error('Сервис не подключён: '+name);
+}};
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tsd=n=>n==null||n===""||isNaN(n)?"—":Math.round(n/1000).toLocaleString("ru-RU")+" тыс.";
+const dt=t=>{try{return new Date(t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return""}};
+const day=t=>{try{return t?new Date(t).toLocaleDateString("ru-RU"):""}catch(e){return t||""}};
+let archived=[],objects=[],sources=[],reports=[],agents={},logs=[],watch=[],requests=[],meta={},db=null,sample=null,assets=null,downloads=null,mcp=null,loaded=false;
+let tab="objects",sub=null,openId=null,openAgentId=null,openWatch=null;const F={type:"all",only:null};
+function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,2600)}
+
+/* ── данные ───────────────────────────────────────────────────────── */
+const isShare=o=>/дол/i.test(o.type||"");
+const stop=o=>o.rating==="D";
+const ls=o=>o.listings&&o.listings.length?o.listings:(o.url?[{source:o.source,seller:o.seller,price:o.price,url:o.url}]:[]);
+function ownerDirect(o){const L=ls(o);const own=L.filter(l=>/собств/i.test(l.seller||""));const ag=L.filter(l=>/агент/i.test(l.seller||""));
+  if(!own.length||!ag.length)return null;const ol=own.reduce((a,b)=>(a.price||1e12)<(b.price||1e12)?a:b);
+  const ap=Math.min(...ag.map(l=>l.price||1e12));return {l:ol,diff:ap<1e12&&ol.price?ap-ol.price:null}}
+const seller=o=>ownerDirect(o)?"собственник":((ls(o)[0]||{}).seller||o.seller||"");
+function sortObjs(a){const r={A:0,B:1,C:2};return a.slice().sort((x,y)=>(r[x.rating]??9)-(r[y.rating]??9)||(y.margin||0)-(x.margin||0))}
+const US={write:"Писать",int:"Интересен",rej:"Отказ"};
+const unseen=o=>!o.seen_at&&(o.status==="new"||o.status==="price_down"||o.status==="removed");
+const NEWK={new:o=>o.status==="new",down:o=>o.status==="price_down",gone:o=>o.status==="removed",watch:o=>!!o.watch_id};
+function tags(o){let t="";if(o.status==="new"&&!o.seen_at)t+=`<span class="tag m">новый</span>`;
+  if(o.watch_id)t+=`<span class="tag m">на контроле</span>`;
+  if(o.status==="price_down")t+=`<span class="tag w">цена ↓${o.prev_price?" было "+tsd(o.prev_price):""}</span>`;
+  const od=ownerDirect(o);if(od)t+=`<span class="tag g">у собственника${od.diff>0?" −"+tsd(od.diff):""}</span>`;
+  if(o.user_status)t+=`<span class="tag ${o.user_status==="rej"?"d":"m"}">${US[o.user_status]}</span>`;
+  if(o.example)t+=`<span class="tag w">пример</span>`;return t}
+const mpill=m=>(m||0)>=300000?"p-ok":(m||0)>=200000?"p-z":(m==null?"p-z":"p-w");
+
+/* ── вкладка «Объекты» ───────────────────────────────────────────── */
+function objCard(o,i){return `<div class="objw"><button class="obj" data-o="${esc(o.id)}"><div class="av rk${Math.min(i+1,5)}">${esc(o.no)}</div>
+  <div><div class="n">${esc(o.address)}</div><div class="t">${esc(o.type||"")} · ${esc(o.area??"—")} м² · ${tsd(o.price)}${seller(o)?" · "+esc(seller(o)):""}</div>${tags(o)}</div>
+  <span class="pill num ${mpill(o.margin)}">${tsd(o.margin)}</span></button>
+  <div class="mini"><button data-oarch="${esc(o.id)}">В архив</button><button data-odel="${esc(o.id)}" class="del">Удалить</button></div></div>`}
+function whatsNew(){
+  const u=objects.filter(unseen);const w=objects.filter(o=>o.watch_id&&unseen(o));
+  const rows=[["new","Новые объекты",u.filter(NEWK.new).length],["down","Цена снизилась",u.filter(NEWK.down).length],["gone","Сняты с продажи",u.filter(NEWK.gone).length]].filter(r=>r[2]);
+  const rowBtn=(k,l,n)=>`<button class="row" data-only="${k}" style="width:100%;background:none;border:0;border-top:1px solid var(--line);font:inherit;color:inherit;cursor:pointer;text-align:left"><span>${l}</span><span class="pill p-z num" style="font-size:13px">${n} →</span></button>`;
+  const wrow=`<button class="obj" data-only="watch"><div><div class="n">${w.length?`<span style="color:var(--ok)">●</span> `:""}Адреса на контроле</div><div class="t">${watch.length?`адресов: ${watch.length}${w.length?` · изменений: ${w.length}`:""}`:"добавить адрес для наблюдения"}</div></div><span class="t">→</span></button>`;
+  if(!rows.length)return wrow;
+  return wrow+`<div class="card"><h2 style="margin:0 0 2px">Что нового</h2>${rows.map(([k,l,n])=>`<button class="row" data-only="${k}" style="width:100%;background:none;border:0;border-top:1px solid var(--line);font:inherit;color:inherit;cursor:pointer;text-align:left"><span>${l}</span><span class="pill p-z num" style="font-size:13px">${n} →</span></button>`).join("")}</div>`}
+function viewObjects(){
+  if(openId){const o=objects.find(x=>x.id===openId);if(o)return viewObject(o);openId=null}
+  if(F.only==="watch")return (openWatch||openId?"":`<button class="back" data-only="">← Все объекты</button><h2>Адреса на контроле</h2>`)+viewWatch();
+  if(F.only){const k=F.only,lab={new:"Новые объекты",down:"Цена снизилась",gone:"Сняты с продажи",watch:"По адресам на контроле"}[k];
+    const list=sortObjs(objects.filter(unseen).filter(k==="watch"?o=>o.watch_id:NEWK[k]));
+    return `<button class="back" data-only="">← Все объекты</button><h2>${lab} · ${list.length}</h2>
+     ${list.length?`<div class="col">${list.map(objCard).join("")}</div>`:`<p class="msg">Всё просмотрено.</p>`}
+     ${list.length?`<button class="sec" id="markSeen">Отметить всё просмотренным</button>`:""}`}
+  const act=objects.filter(o=>!stop(o)&&o.status!=="removed");const best=Math.max(0,...act.map(o=>o.margin||0));
+  let h=`<div class="total"><small>Подходят под критерии</small><b class="num">${act.length}</b>
+   <div class="tsub num"><div>новых<b>${act.filter(o=>o.status==="new"&&!o.seen_at).length}</b></div><div>цена ↓<b>${act.filter(o=>o.status==="price_down"&&!o.seen_at).length}</b></div>
+   <div>у собств.<b>${act.filter(ownerDirect).length}</b></div><div>лучшая маржа<b>${best?Math.round(best/1000):"—"}</b></div></div></div>
+   ${whatsNew()}${actionsPanel()}
+   <div class="chips">${[["all","Все"],["rooms","Комнаты"],["shares","Доли"]].map(([k,l])=>`<button class="chip ${F.type===k?"on":""}" data-ty="${k}">${l}</button>`).join("")}</div>`;
+  if(!loaded)return h+`<p class="msg">Загружаю объекты…</p>`;
+  if(!objects.length)return h+`<p class="msg">Объектов пока нет. Нажмите «Найти ещё объекты» или дождитесь прогона по расписанию.</p>`;
+  const G=[["Комнаты и гостинки","rooms",o=>!isShare(o)],["Доли","shares",isShare]].filter(g=>F.type==="all"||F.type===g[1]);
+  G.forEach(([name,,fn])=>{const list=sortObjs(objects.filter(fn).filter(o=>!stop(o)&&o.status!=="removed"));const dr=objects.filter(fn).filter(stop).filter(o=>o.status!=="removed");
+    h+=`<h2>${name} · ${list.length}</h2>`;
+    h+=list.length?`<div class="col">${list.map(objCard).join("")}</div>`:`<p class="msg">Пока нет.</p>`;
+    if(dr.length)h+=`<details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Отсеяно · ${dr.length}</summary>${dr.map(o=>`<div class="row" style="flex-direction:column;align-items:stretch;gap:2px"><div><div style="font-weight:600">${esc(o.address)}</div><div class="t">${esc(o.area??"—")} м² · ${esc(o.floor||"—")} эт. · ${tsd(o.price)}</div><div class="t">${esc(o.exclude_reason||(o.legal_risks||"").split(".")[0]||"стоп-фактор")}</div></div><div class="mini" style="border:0;padding:0;background:none;margin-right:-8px"><button data-oarch="${esc(o.id)}">В архив</button><button data-odel="${esc(o.id)}" class="del">Удалить</button></div></div>`).join("")}${dr.length>1?`<div class="mini" style="border:0;background:none;padding-top:6px"><button class="del" data-odelall="${esc(dr.map(o=>o.id).join(","))}">Удалить все отсеянные</button></div>`:""}</details>`;
+  });
+  if(archived.length)h+=`<details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Архив · ${archived.length}</summary>${archived.map(o=>`<div class="row"><div><div style="font-weight:600">${esc(o.address)}</div><div class="t">${esc(o.type||"")} · ${tsd(o.price)}</div></div><div class="chips" style="flex-wrap:nowrap"><button class="sec" data-ounarch="${esc(o.id)}">Вернуть</button><button class="sec" style="color:var(--red)" data-odel="${esc(o.id)}">Удалить</button></div></div>`).join("")}</details>`;
+  return h}
+function viewObject(o){
+  const costs=o.est_value!=null&&o.price!=null&&o.margin!=null?o.est_value-o.price-o.margin:null;
+  const L=ls(o),od=ownerDirect(o),a=o.action||{},n=o.negotiation;
+  const tone=(label,v,good=[],warn=[],bad=[])=>{const s=String(v||"не проверено");let l=s.toLowerCase();["аварийным не признан","не аварийн","не признан аварийн"].forEach(x=>l=l.split(x).join(""));
+    const c=bad.some(b=>l.includes(b))?"d":(warn.some(w=>l.includes(w))||l.includes("не провер"))?"w":good.some(g=>l.includes(g))?"g":"";
+    return `<div class="${c}"><small>${label}</small><b>${esc(s)}</b></div>`};
+  return `<button class="back" data-back>← Все объекты</button>
+  <div class="total"><small>№${esc(o.no)} · ${esc(o.type||"")} · ${esc(o.area??"—")} м² · ${esc(o.floor||"—")} эт.</small>
+   <div style="font-size:19px;font-weight:800;margin-top:4px;line-height:1.3">${esc(o.address)}</div>
+   <div class="tsub num"><div>цена<b>${Math.round((o.price||0)/1000)||"—"}</b></div><div>затраты<b>${costs!=null?Math.round(costs/1000):"—"}</b></div><div>продажа<b>${o.est_value?Math.round(o.est_value/1000):"—"}</b></div><div>маржа<b>${o.margin!=null?Math.round(o.margin/1000):"—"}</b></div></div>
+   <div style="font-size:12px;opacity:.8;margin-top:6px">суммы в тыс. ₽</div></div>
+  <div>${tags(o)}</div>
+  <div class="card col"><h2 style="margin:0">Ваше решение</h2>
+   <div class="chips" id="usb">${Object.entries(US).map(([k,l])=>`<button class="sec ${o.user_status===k?"on":""}" data-us="${k}">${l}</button>`).join("")}</div>
+   <textarea id="unote" rows="2" placeholder="Комментарий для агента">${esc(o.user_note||"")}</textarea>
+   <button class="main" id="usSave">Сохранить</button><div class="t">Агент увидит решение при следующем запуске и ничего не отправит без вашего «да».</div></div>
+  ${o.scenarios&&o.scenarios.resale?`<div class="card"><h2 style="margin:0 0 6px">План</h2><div style="font-size:14px">${esc(o.scenarios.resale)}</div>${o.sale_speed?`<div class="t" style="margin-top:6px">${esc(o.sale_speed)}</div>`:""}</div>`:""}
+  <div class="card col"><h2 style="margin:0">Параметры</h2><div class="kv">
+   ${tone("Санузел",o.bathroom,["можно","свой"],["общий","сомнит"],["нельзя"])}${tone("Кухня",o.kitchen,["своя"])}${tone("Газ",o.gas,["нет"],["есть"])}
+   ${tone("Состояние",o.condition_short||o.condition)}${tone("Дом",o.house_short||(o.house_check&&!/не проверено/.test(o.house_check)?o.house_check.split(":").slice(1).join(":").slice(0,90):o.house_check),[],[],["аварийн","деревян"])}${tone("Продавец",seller(o)||"—",["собств"])}</div></div>
+  ${L.length?`<div class="card"><h2 style="margin:0 0 4px">Объявления${od?" · можно напрямую к собственнику":""}</h2>${L.map(l=>`<div class="row"><div><div style="font-weight:700">${esc(l.source||"")}${l.seller?` · <span style="color:${/собств/i.test(l.seller)?"var(--ok)":"inherit"}">${esc(l.seller)}</span>`:""}</div>${l.note?`<div class="t">${esc(l.note)}</div>`:""}${l.url?(/\d{5,}/.test(l.url)?`<a href="${esc(l.url)}" target="_blank" rel="noopener" class="t">открыть объявление</a>`:`<a href="${esc(l.url)}" target="_blank" rel="noopener" class="t" style="color:var(--amb)">ссылка ведёт на подборку, не на объявление</a>`):""}</div><span class="amt num">${tsd(l.price)}</span></div>`).join("")}
+   <div class="note g" style="margin-top:8px"><b>Рекомендация: ${esc(a.do||"написать")}</b>${o.recommendation||a.note?`<div style="margin-top:2px">${esc(o.recommendation||a.note)}</div>`:""}</div></div>`:""}
+  ${(o.analog_links||[]).length||o.analogs?`<div class="card"><h2 style="margin:0 0 4px">Аналоги</h2>${(o.analog_links||[]).map(x=>`<div class="row"><div>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>`:esc(x.title)}</div><span class="amt num">${tsd(x.price)}</span></div>`).join("")||`<div style="font-size:14px">${esc(o.analogs)}</div>`}</div>`:""}
+  <div class="card col"><h2 style="margin:0">Риски</h2>
+   <div class="note ${stop(o)?"d":"g"}"><b>Стоп-факторы:</b> ${stop(o)?esc(o.exclude_reason||"выявлены"):"не выявлены по объявлению"}</div>
+   <div class="note w"><b>Юридические риски:</b> ${esc(o.legal_risks||"не проверено")}</div>
+   ${o.share_info&&o.share_info!=="—"?`<div class="note w"><b>Доля и сособственники:</b> ${esc(o.share_info)}</div>`:""}
+   ${o.discrepancies?`<div class="note w"><b>Расхождения:</b> ${esc(o.discrepancies)}</div>`:""}
+   ${o.house_url?`<a href="${esc(o.house_url)}" target="_blank" rel="noopener" class="t">паспорт дома</a>`:""}</div>
+  ${(o.questions||[]).length?`<div class="card"><h2 style="margin:0 0 6px">Что выяснить у собственника</h2><ol class="q">${o.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ol></div>`:""}
+  ${n?`<div class="card col"><h2 style="margin:0">Торг и черновик сообщения</h2><div class="big num"><div><small>старт</small><b>${tsd(n.opener_price)}</b></div><div class="hl"><small>цель</small><b>${tsd(n.target_price)}</b></div></div>
+   <div class="t">предел ${tsd(n.walk_away)}${n.channel?" · "+esc(n.channel):""}</div>
+   <textarea id="negMsg" rows="9">${esc(n.message||"")}</textarea>
+   <div class="chips"><button class="sec" id="negSave">Сохранить текст</button><button class="sec" id="negCopy">Скопировать</button></div>
+   <div class="t">Текст можно править. Агент отправит сохранённую версию только после вашего «да».</div></div>`:""}
+  <div class="chips" style="flex-wrap:nowrap"><button class="sec" style="flex:1" data-oarch="${esc(o.id)}">В архив</button><button class="sec" style="flex:1;color:var(--red)" data-odel="${esc(o.id)}">Удалить</button></div>
+  <div class="t" style="text-align:center">Впервые ${esc(day(o.first_seen))} · проверено ${esc(day(o.last_seen))}. Перед сделкой — выписка ЕГРН.</div>`}
+
+/* ── действия: обновить, найти ещё, контроль адреса ───────────── */
+const RQ={queued:["в очереди","p-z"],running:["агент работает","p-w"],done:["готово","p-ok"],error:["ошибка","p-d"]};
+const RK={refresh:"Обновить отчёт",more:"Найти ещё объекты",watch:"Контроль адреса"};
+function lastReq(filter){return requests.filter(filter).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)))[0]}
+function reqLine(r){if(!r)return "";const s=RQ[r.status]||["—","p-z"];if(r.status==="done"&&Date.now()-new Date(r.created_at)>864e5)return "";
+  if(r.status!=="queued"&&r.status!=="running"&&r.status!=="error")return "";
+  return `<div class="row" style="padding-bottom:0"><div class="t">${esc(RK[r.kind]||r.kind)}</div><span class="pill ${s[1]}" style="font-size:12px">${s[0]}</span></div>`}
+function actionsPanel(){
+  return `<div class="card col" style="gap:8px"><div class="chips" style="flex-wrap:nowrap"><button class="sec" style="flex:1" id="rqRefresh">↻ Обновить отчёт</button><button class="sec" style="flex:1" id="rqMore">＋ Найти ещё</button></div>
+   ${reqLine(lastReq(r=>r.kind!=="watch"))}</div>`}
+function watchObjs(w){return sortObjs(objects.filter(o=>o.watch_id===w.id&&o.status!=="removed"))}
+function viewWatch(){
+  if(openId){const o=objects.find(x=>x.id===openId);if(o)return viewObject(o);openId=null}
+  if(openWatch){const w=watch.find(x=>x.id===openWatch);if(w){const list=watchObjs(w);const gone=objects.filter(o=>o.watch_id===w.id&&o.status==="removed");
+    return `<button class="back" data-wback>← Все адреса</button>
+     <div class="total"><small>Адрес на контроле</small><div style="font-size:19px;font-weight:800;margin-top:4px;line-height:1.3">${esc(w.address)}</div>
+      <div class="tsub num" style="grid-template-columns:repeat(3,1fr)"><div>в продаже<b>${list.length}</b></div><div>от<b>${w.price_min?Math.round(w.price_min/1000):"—"}</b></div><div>до<b>${w.price_max?Math.round(w.price_max/1000):"—"}</b></div></div>
+      <div style="font-size:12px;opacity:.8;margin-top:6px">${w.last_checked?"проверено "+esc(dt(w.last_checked)):"ещё не проверялся"} · суммы в тыс. ₽</div></div>
+     <div class="card col" style="gap:8px"><div style="font-weight:700">Изменить</div>
+      <textarea id="weAddr" rows="1">${esc(w.address)}</textarea>
+      <textarea id="weNote" rows="1" placeholder="Задача (необязательно): ловить ниже 1,2 млн">${esc(w.note||"")}</textarea>
+      <div class="chips" style="flex-wrap:nowrap"><button class="sec" style="flex:1" data-wsave="${esc(w.id)}">Сохранить</button><button class="sec" style="flex:1" data-wcheck="${esc(w.id)}">↻ Проверить сейчас</button></div>
+      <button class="sec" data-wdel="${esc(w.id)}" style="color:var(--red)">Снять с контроля</button></div>
+     ${w.summary?`<div class="card"><h2 style="margin:0 0 4px">Что изменилось</h2><div style="font-size:14px">${esc(w.summary)}</div></div>`:""}
+     <h2>Объекты в продаже · ${list.length}</h2>${list.length?`<div class="col">${list.map(objCard).join("")}</div>`:`<p class="msg">${w.last_checked?"Сейчас в продаже ничего нет.":"Агент ещё ищет объекты по этому адресу."}</p>`}
+     ${gone.length?`<details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Сняты с продажи · ${gone.length}</summary>${gone.map(o=>`<div class="row"><div>${esc(o.area??"—")} м² · ${esc(o.floor||"")}</div><span class="amt num">${tsd(o.price)}</span></div>`).join("")}</details>`:""}
+`}openWatch=null}
+  return `   <div class="card col" style="gap:8px"><div style="font-weight:700">Добавить адрес</div>
+   <textarea id="wAddr" rows="1" placeholder="Например: ул. Железнодорожников, 9"></textarea>
+   <textarea id="wNote" rows="1" placeholder="Задача (необязательно): ловить ниже 1,2 млн"></textarea>
+   <button class="main" id="wAdd">Найти по адресу</button>${reqLine(lastReq(r=>r.kind==="watch"))}</div>
+   ${watch.length?`<div class="col">${watch.slice().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).map(w=>{const list=watchObjs(w);const ch=objects.some(o=>o.watch_id===w.id&&unseen(o));
+     return `<button class="obj" data-w="${esc(w.id)}"><div><div class="n">${ch?`<span style="color:var(--ok)">●</span> `:""}${esc(w.address)}</div><div class="t">${w.last_checked?`в продаже ${list.length}${w.price_min?` · ${tsd(w.price_min)}–${tsd(w.price_max)}`:""}`:"агент ищет…"}${w.note?" · "+esc(w.note):""}</div></div><span class="t">→</span></button>`}).join("")}</div>`
+   :`<p class="msg">Адресов на контроле пока нет.</p>`}`}
+async function sendRequest(kind,extra){
+  if(!db){toast("База недоступна в этом просмотре");return}
+  const id="r"+Date.now();const doc={kind,status:"queued",created_at:new Date().toISOString(),...extra};
+  try{await db.collection("requests").doc(id).set(doc)}catch(e){toast("Не удалось создать запрос: нет прав или нет связи");return}
+  const trig=meta.trigger_id||'local';
+  if(!mcp||!trig){toast("Запрос поставлен в очередь — агент выполнит его при ближайшем прогоне");return}
+  const text=`Запрос со страницы: ${RK[kind]}${extra.address?" — адрес: "+extra.address:""}${extra.note?" — уточнение: "+extra.note:""} (requests/${id}).`;
+  try{const result=await mcp.callTool("Claude Code Remote","fire_trigger",{trigger_id:trig,text});toast("Поиск завершён. Новых объектов: "+result.new)}
+  catch(e){const c=e&&e.code;
+    toast(c==="approval_required"||c==="not_in_manifest"||c==="consent_required"?"Нужно разрешить запуск агента — запрос пока в очереди":
+      c==="server_not_connected"||c==="needs_reauth"?"Подключение Claude Code Remote недоступно — запрос в очереди до прогона по расписанию":
+      "Агент не запустился сразу, запрос в очереди")}}
+
+/* ── отчёты ───────────────────────────────────────────────────────── */
+function viewReports(){
+  let h=`<div class="card col"><div style="font-weight:700">Архив отчётов</div><div class="t">PDF каждого прогона агент добавляет сам. Можно загрузить и свой файл.</div>
+   ${assets?`<button class="main" id="upBtn">Загрузить отчёт</button><input type="file" id="upFile" accept="application/pdf,.pdf,.csv" hidden><div class="t" id="upNote"></div>`:""}</div>`;
+  const act=reports.filter(r=>!r.archived),arch=reports.filter(r=>r.archived);
+  if(!act.length&&!arch.length)return h+`<p class="msg">Отчётов пока нет. После первого прогона здесь появится PDF.</p>`;
+  const rrow=r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1 1 180px"><div style="font-weight:700">${esc(r.title||"Отчёт")}</div><div class="t">${esc(day(r.date))} · ${r.kind==="upload"?"загружен вами":"агент"}</div></div><div class="chips"><button class="sec" data-dl="${esc(r.id)}">Скачать PDF</button>${r.archived?`<button class="sec" data-runarch="${esc(r.id)}">Вернуть</button>`:`<button class="sec" data-rarch="${esc(r.id)}">В архив</button>`}<button class="sec" style="color:var(--red)" data-rdel="${esc(r.id)}">Удалить</button></div></div>`;
+  const srt=a=>a.slice().sort((x,y)=>String(y.date||"").localeCompare(String(x.date||"")));
+  return h+(act.length?`<div class="card">${srt(act).map(rrow).join("")}</div>`:"")+(arch.length?`<details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Архив · ${arch.length}</summary>${srt(arch).map(rrow).join("")}</details>`:"");
+  return h+`<div class="card">${reports.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))).map(r=>`<div class="row"><div><div style="font-weight:700">${esc(r.title||"Отчёт")}</div><div class="t">${esc(day(r.date))} · ${r.kind==="upload"?"загружен вами":"агент"}${r.objects!=null?" · объектов: "+esc(r.objects):""}</div></div><div class="chips" style="flex-wrap:nowrap"><button class="sec" data-dl="${esc(r.id)}">Скачать PDF</button></div></div>`).join("")}</div>`}
+async function dl(r){if(!r||!r.asset_id){toast("Файл ещё не прикреплён");return}
+  if(!downloads){toast("Скачивание здесь недоступно — нажмите «Открыть»");return}
+  let blob;try{blob=await officeApi("/_blob/"+r.asset_id,{cache:"no-store"})}
+  catch(e){toast("Файл не загрузился ("+(e&&e.message||"сеть")+") — нажмите «Открыть»");return}
+  const name=String(r.filename||(r.title||"Отчёт")+".pdf").replace(/[\\/:*?"<>|·]+/g," ").replace(/\s+/g," ").trim();
+  try{await downloads.save({filename:/\.pdf$/i.test(name)?name:name+".pdf",data:blob})}
+  catch(e){const c=e&&e.code;if(c==="declined")return;toast(c==="rate_limited"?"Подождите пару секунд и повторите":"Скачивание не сработало ("+(c||"ошибка")+") — нажмите «Открыть»")}}
+
+/* ── источники ────────────────────────────────────────────────────── */
+const SRC_ORDER=["avito","cian","domclick","yandex","sibdom","neagent","mirkvartir","barahla","wiweb","vk","ok-obshchezhitie","ok-bezposrednikov","tg-krsk-obyavlenia","tg-krsknedviga","tg-obyavlenia-krsk"];
+const SST={ok:["утверждён","p-ok"],check:["на проверке","p-w"],off:["отключён","p-d"]};
+function viewSources(){
+  if(!loaded)return `<p class="msg">Загружаю…</p>`;
+  const setup=`<div class="card col"><b>Добавить источник RSS/Atom</b><input id="feedName" placeholder="Название источника" style="padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)"><input id="feedUrl" type="url" placeholder="https://адрес-ленты" style="padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)"><button class="main" id="feedAdd">Добавить источник</button><div class="t">Только официально доступные RSS/Atom-ленты. Обычная страница сайта не является лентой.</div></div>`;
+  if(!sources.length)return setup+`<p class="msg">Источники пока не добавлены. Поиск не будет создавать вымышленные объявления.</p>`;
+  const pos=s=>{const i=SRC_ORDER.indexOf(s.id);return i<0?99:i};
+  const list=sources.slice().sort((a,b)=>(a.status==="off")-(b.status==="off")||pos(a)-pos(b));
+  return setup+`<div class="t">Источники по ценности. Раз в 4 недели агент отмечает те, что ничего не дали, — исключаете вы.</div>
+  <div class="col">${list.map(s=>{const st=SST[s.status]||["—","p-z"];return `<div class="card col">
+   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div style="min-width:0"><div style="font-weight:700">${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:inherit">${esc(s.name)}</a>`:esc(s.name)}</div><div class="t">${esc(s.kind||"")}${s.note?" · "+esc(s.note):""}</div></div><span class="pill ${st[1]}" style="font-size:12px">${st[0]}</span></div>
+   <div class="t num">найдено ${s.found??0} · прошли отсев ${s.passed??0} · интересные ${s.interesting??0}${s.recommend_exclude?` · <b style="color:var(--red)">агент советует исключить</b>`:""}</div>
+   <div class="chips">${s.status!=="ok"?`<button class="sec" data-src="${esc(s.id)}" data-to="ok">Утвердить</button>`:""}${s.status!=="off"?`<button class="sec" data-src="${esc(s.id)}" data-to="off">Отключить</button>`:`<button class="sec" data-src="${esc(s.id)}" data-to="check">Вернуть</button>`}</div></div>`}).join("")}</div>`}
+
+/* ── статистика ───────────────────────────────────────────────────── */
+function viewStats(){
+  if(!objects.length)return `<p class="msg">Статистика появится после первых прогонов.</p>`;
+  const act=objects.filter(o=>!stop(o));const avg=a=>a.length?a.reduce((s,o)=>s+(o.margin||0),0)/a.length:null;
+  const f=[["Найдено",objects.length],["Прошли отсев",act.length],["Интересные",act.filter(o=>o.user_status==="int"||o.user_status==="write").length],["Писать",act.filter(o=>o.user_status==="write").length],["Показ / сделка",act.filter(o=>o.negotiation&&["meeting","agreed"].includes(o.negotiation.status)).length]];
+  const mx=Math.max(1,...f.map(x=>x[1]));const bySrc={};objects.forEach(o=>ls(o).forEach(l=>{const k=(l.source||"—").split(/[ (/]/)[0];bySrc[k]=bySrc[k]||{n:0,p:0};bySrc[k].n++;if(!stop(o))bySrc[k].p++}));
+  return `<div class="card"><h2 style="margin:0 0 6px">Воронка</h2>${f.map(([l,v])=>`<div class="row"><div style="flex:1">${l}<div class="meter"><i style="width:${v/mx*100}%"></i></div></div><span class="amt num">${v}</span></div>`).join("")}</div>
+  <div class="big num"><div><small>Средняя маржа · комнаты</small><b>${tsd(avg(act.filter(o=>!isShare(o))))}</b></div><div><small>Средняя маржа · доли</small><b>${tsd(avg(act.filter(isShare)))}</b></div>
+   <div class="hl"><small>Лучшая маржа</small><b>${tsd(Math.max(0,...act.map(o=>o.margin||0)))}</b></div><div><small>У собственника напрямую</small><b>${act.filter(ownerDirect).length}</b></div></div>
+  <div class="card"><h2 style="margin:0 0 4px">По источникам</h2>${Object.entries(bySrc).sort((a,b)=>b[1].p-a[1].p).map(([k,v])=>`<div class="row"><div>${esc(k)}</div><span class="t num">${v.n} найдено · ${v.p} прошли</span></div>`).join("")}</div>`}
+
+/* ── команда ──────────────────────────────────────────────────────── */
+const AGENTS=[
+ {id:"scout",name:"Площадки",role:"ищет объявления",shirt:"--shirt1",hair:"bun"},
+ {id:"share",name:"Доли",role:"разбирает доли и выдел",shirt:"--shirt2",hair:"long"},
+ {id:"analyst",name:"Аналитик",role:"аналоги и маржа",shirt:"--shirt3",hair:"curly",glasses:true},
+ {id:"legal",name:"Юрист",role:"риски и документы",shirt:"--shirt4",hair:"short",glasses:true},
+ {id:"negotiator",name:"Переговорщик",role:"черновики сообщений",shirt:"--shirt5",hair:"short",tie:true},
+ {id:"reporter",name:"Отчёты",role:"PDF и сводка",shirt:"--shirt6",hair:"bun",glasses:true},
+ {id:"auction",name:"Торги",role:"подключим позже",shirt:"--shirt7",hair:"cap",soon:true}];
+const ST={idle:"отдыхает",working:"работает",done:"готово",error:"ошибка"};
+function hairOf(a,x,y){const c=`var(${a.shirt})`;return {short:`<path class="p-hair" d="M${x-10} ${y-6}q10-12 20 0v-3q-10-9-20 0z"/>`,cap:`<path d="M${x-12} ${y-7}q12-12 24 0z" fill="${c}"/><rect x="${x+6}" y="${y-9}" width="9" height="2.5" rx="1" fill="${c}"/>`,bun:`<path class="p-hair" d="M${x-10} ${y-6}q10-12 20 0v-3q-10-9-20 0z"/><circle class="p-hair" cx="${x}" cy="${y-16}" r="4"/>`,long:`<path class="p-hair" d="M${x-11} ${y+6}v-11q11-14 22 0v11h-3v-9q-8-6-16 0v9z"/>`,curly:`<g class="p-hair"><circle cx="${x-8}" cy="${y-7}" r="3.5"/><circle cx="${x-3}" cy="${y-10}" r="3.5"/><circle cx="${x+3}" cy="${y-10}" r="3.5"/><circle cx="${x+8}" cy="${y-7}" r="3.5"/></g>`}[a.hair]}
+function person(a){const S=`var(${a.shirt})`,P="var(--pants)";return `<svg viewBox="0 0 240 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+ <line class="p-floor" x1="0" y1="96" x2="240" y2="96"/><rect x="100" y="16" width="34" height="34" rx="3" fill="var(--card)" stroke="var(--line)" stroke-width="2"/><path d="M117 16v34M100 33h34" stroke="var(--line)" stroke-width="2"/>
+ <rect class="p-furn2" x="10" y="74" width="72" height="8" rx="2"/><rect class="p-furn2" x="10" y="62" width="5" height="34"/><rect class="p-furn2" x="78" y="82" width="4" height="14"/><rect class="p-bed" x="15" y="68" width="14" height="7" rx="3"/>
+ <g class="p-sleeper"><circle cx="24" cy="65" r="7" class="p-skin"/>${hairOf(a,24,65).replace('class="p-hair"','class="p-hair" transform="rotate(-80 24 65)"')}<path d="M21 66q3 1.5 6 0" stroke="#3b3632" stroke-width="1" fill="none"/><rect class="p-blanket" x="30" y="62" width="50" height="12" rx="5" fill="${S}"/></g>
+ <text class="p-zz" x="36" y="52" font-size="11" fill="var(--mute)" font-family="sans-serif">z</text>
+ <rect class="p-furn2" x="168" y="70" width="64" height="5" rx="2"/><rect class="p-furn2" x="174" y="75" width="4" height="21"/><rect class="p-furn2" x="222" y="75" width="4" height="21"/>
+ <g transform="translate(196 46)"><rect width="24" height="17" rx="2" fill="var(--mark)"/><rect x="2" y="2" width="20" height="13" class="p-screen"/><rect x="2" y="2" width="20" height="13" class="p-glow"/><rect x="10" y="17" width="4" height="7" fill="var(--mark)"/></g>
+ <rect class="p-furn2" x="146" y="80" width="26" height="4" rx="2"/><rect class="p-furn2" x="144" y="58" width="4" height="26" rx="2"/><rect class="p-furn2" x="157" y="84" width="3" height="12"/>
+ <path class="p-ok" d="M200 30l4 4 8-9" stroke="var(--ok)" stroke-width="3" fill="none" stroke-linecap="round"/>
+ <g class="p-man"><g class="p-legs-stand"><rect class="p-leg p-legL" x="153" y="76" width="6" height="20" rx="3" fill="${P}"/><rect class="p-leg p-legR" x="161" y="76" width="6" height="20" rx="3" fill="${P}"/></g>
+  <path class="p-legs-sit" d="M156 84h18v12M163 84h18v12" stroke="${P}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <g class="p-upper"><rect class="p-arm p-armL" x="141" y="56" width="12" height="6" rx="3" fill="${S}"/><rect class="p-body" x="148" y="50" width="24" height="28" rx="9" fill="${S}"/>${a.tie?'<path d="M160 51l-2.5 4 2.5 12 2.5-12z" fill="var(--card)"/>':''}
+  <rect class="p-arm p-armR" x="167" y="56" width="14" height="6" rx="3" fill="${S}"/>
+  <g class="p-head"><rect x="157" y="44" width="6" height="7" class="p-skin"/><circle cx="160" cy="38" r="10" class="p-skin"/>${hairOf(a,160,38)}<circle cx="163" cy="39" r="1.2" fill="#3b3632"/><circle cx="168" cy="39" r="1.2" fill="#3b3632"/>
+  ${a.glasses?'<g fill="none" stroke="#3b3632" stroke-width="1"><circle cx="163" cy="39" r="2.8"/><circle cx="168.5" cy="39" r="2.8"/></g>':''}<path d="M163 43.5q2.5 1.6 5 0" stroke="#3b3632" stroke-width="1" fill="none" stroke-linecap="round"/></g></g></g></svg>`}
+const POS={};
+function viewTeam(){
+  if(openAgentId)return viewAgent(AGENTS.find(a=>a.id===openAgentId));
+  return `<div class="card t">Это не отдельные программы, а этапы работы одного агента. Человечек показывает, какой этап сейчас идёт: за столом — работает, в кровати — ждёт своего этапа, машет — закончил.</div>
+  <div class="col" id="office">${AGENTS.map(a=>`<button class="desk" data-agent="${a.id}"><div class="scene">${person(a)}</div><div class="dinfo"><div><div style="font-weight:700">${a.name}</div><div class="t" data-task>${a.role}</div></div><span class="pill p-z" style="font-size:12px" data-st></span></div></button>`).join("")}</div>
+  <details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Журнал действий${logs.length?" · "+logs.length:""}</summary>${logs.length?logs.slice(0,40).map(l=>`<div class="row"><div><b>${esc((AGENTS.find(a=>a.id===l.agent)||{}).name||l.agent)}:</b> ${esc(l.text)}</div><span class="t num">${dt(l.ts)}</span></div>`).join(""):`<div class="t">Здесь появятся действия агента.</div>`}</details>`}
+function syncOffice(){document.querySelectorAll("#office [data-agent]").forEach(el=>{const a=AGENTS.find(x=>x.id===el.dataset.agent);const s=agents[a.id]||{};const st=s.status||"idle";const pos=st==="idle"?"bed":"desk";
+  ["idle","working","done","error"].forEach(c=>el.classList.toggle(c,c===st));
+  if(!POS[a.id]||!(el.classList.contains("pos-bed")||el.classList.contains("pos-desk"))&&POS[a.id]===pos){el.classList.add("pos-"+pos);POS[a.id]=pos}
+  else if(POS[a.id]!==pos||!el.classList.contains("pos-"+pos)){el.classList.add("running");el.classList.remove("pos-bed","pos-desk");el.classList.add("pos-"+pos);clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("running"),1650);POS[a.id]=pos}
+  el.querySelector("[data-task]").textContent=s.task||a.role;const p=el.querySelector("[data-st]");
+  p.textContent=a.soon&&!s.status?"скоро":ST[st];p.className="pill "+(st==="working"?"p-w":st==="done"?"p-ok":st==="error"?"p-d":"p-z")})}
+const chats={};
+function viewAgent(a){chats[a.id]=chats[a.id]||[];const mine=logs.filter(l=>l.agent===a.id).slice(0,12);
+  return `<button class="back" data-back>← Команда</button><div class="total"><small>этап агента</small><b style="font-size:26px">${a.name}</b><div style="opacity:.85;font-size:14px">${a.role}</div></div>
+  <div class="card"><h2 style="margin:0 0 4px">Что делал</h2>${mine.length?mine.map(l=>`<div class="row"><div>${esc(l.text)}</div><span class="t num">${dt(l.ts)}</span></div>`).join(""):`<div class="t">Пока ничего: этап ещё не запускался.</div>`}</div>
+  <div class="card col"><h2 style="margin:0">Вопрос</h2><div class="col" id="chatBody">${chats[a.id].map(m=>`<div class="msgbox" style="${m.role==="user"?"background:var(--accs)":""}">${esc(m.content)}</div>`).join("")}</div>
+  ${sample?`<textarea id="chatIn" rows="2" placeholder="Например: какие доли сейчас самые выгодные?"></textarea><button class="main" id="chatSend">Спросить</button>`:`<div class="t">Вопросы доступны, когда страница открыта в Claude.</div>`}</div>`}
+async function ask(a){const q=$("#chatIn").value.trim();if(!q)return;const c=chats[a.id];c.push({role:"user",content:q});c.push({role:"assistant",content:"…"});render();
+  const ctx=JSON.stringify(objects.filter(o=>o.status!=="removed").slice(0,40).map(o=>({no:o.no,address:o.address,type:o.type,price:o.price,area:o.area,rating:o.rating,margin:o.margin,seller:seller(o),legal_risks:o.legal_risks,share_info:o.share_info})));
+  const sys=`Ты — этап «${a.name}» (${a.role}) агента, который ищет комнаты, гостинки и доли в Красноярске под инвестицию: покупка, ремонт или выдел доли, перепродажа; минимальная маржа 200 тыс. Отвечай по-русски, кратко, только по данным ниже. Не выдумывай; если данных нет, так и скажи. Доля в праве не равна комнате.\nОбъекты: ${ctx}`;
+  const hist=c.slice(0,-1);const msgs=[{role:"user",content:sys+"\n\nВопрос: "+hist[0].content},...hist.slice(1)];
+  const upd=t=>{c[c.length-1].content=t;const b=$("#chatBody");if(b&&b.lastElementChild)b.lastElementChild.textContent=t};
+  try{const r=await sample(msgs,{cache:false,onText:({text})=>upd(text)});upd(r.text)}
+  catch(e){upd(e&&e.code==="rate_limited"?"Слишком много вопросов подряд, попробуйте через минуту.":"Не удалось получить ответ.")}}
+
+function viewMore(){
+  if(sub==="stats")return `<button class="back" data-sub="">← Ещё</button>`+viewStats();
+  if(sub==="team")return (openAgentId?"":`<button class="back" data-sub="">← Ещё</button>`)+viewTeam();
+  return `<div class="col"><button class="obj" data-sub="stats"><div><div class="n">Статистика</div><div class="t">воронка, маржа, источники</div></div><span class="t">→</span></button>
+   <button class="obj" data-sub="team"><div><div class="n">Команда</div><div class="t">как работает агент сейчас</div></div><span class="t">→</span></button></div>`}
+/* ── рендер и события ─────────────────────────────────────────────── */
+function render(){const V={objects:viewObjects,reports:viewReports,sources:viewSources,stats:viewStats,team:viewTeam};
+  const keep={};document.querySelectorAll("#view textarea[id]").forEach(el=>keep[el.id]=el.value);
+  const ae=document.activeElement,focusId=ae&&ae.id&&ae.tagName==="TEXTAREA"?ae.id:null,sel=focusId?[ae.selectionStart,ae.selectionEnd]:null;
+  $("#view").innerHTML=V[tab]();
+  Object.entries(keep).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&!el.dataset.fresh)el.value=v});
+  if(focusId){const el=document.getElementById(focusId);if(el){el.focus();try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  if(tab==="team"&&!openAgentId)syncOffice()}
+$("#view").addEventListener("click",async e=>{const t=e.target.closest("button,[data-o]");if(!t)return;
+  if(t.dataset.back!==undefined){if(openId)openId=null;else openAgentId=null;render();scrollTo(0,0);return}
+  if(t.dataset.o){openId=t.dataset.o;const o=objects.find(x=>x.id===openId);if(o&&unseen(o)&&db){db.collection("objects").doc(o.id).update({seen_at:new Date().toISOString()}).catch(()=>{})}render();scrollTo(0,0);return}
+  if(t.dataset.only!==undefined){F.only=t.dataset.only||null;render();scrollTo(0,0);return}
+  if(t.id==="markSeen"){const list=objects.filter(unseen).filter(F.only==="watch"?o=>o.watch_id:NEWK[F.only]);const now=new Date().toISOString();
+    for(const o of list){try{await db.collection("objects").doc(o.id).update({seen_at:now})}catch(e){}}F.only=null;render();return}
+  if(t.dataset.w){openWatch=t.dataset.w;render();scrollTo(0,0);return}
+  if(t.dataset.wback!==undefined){openWatch=null;render();scrollTo(0,0);return}
+  if(t.dataset.sub!==undefined){sub=t.dataset.sub||null;openAgentId=null;render();scrollTo(0,0);return}
+  if(t.dataset.ty){F.type=t.dataset.ty;render();return}
+  if(t.dataset.fl){F[t.dataset.fl]=!F[t.dataset.fl];render();return}
+  if(t.dataset.us){document.querySelectorAll("#usb [data-us]").forEach(b=>b.classList.toggle("on",b===t&&!b.classList.contains("on")));return}
+  if(t.id==="usSave"){if(!db){toast("База недоступна в этом просмотре");return}const on=document.querySelector("#usb .on");
+    try{await db.collection("objects").doc(openId).update({user_status:on?on.dataset.us:null,user_note:$("#unote").value.trim(),user_at:new Date().toISOString()});toast("Сохранено")}catch(err){toast("Не удалось сохранить: нет прав или нет связи")}return}
+  if(t.id==="negCopy"){const el=$("#negMsg");try{await navigator.clipboard.writeText(el.value);toast("Скопировано")}catch(err){el.focus();el.select();toast("Текст выделен, скопируйте его")}return}
+  if(t.id==="negSave"){if(!db){toast("База недоступна в этом просмотре");return}const o=objects.find(x=>x.id===openId);if(!o||!o.negotiation)return;
+    try{await db.collection("objects").doc(openId).update({negotiation:{...o.negotiation,message:$("#negMsg").value,edited_by_user:true,updated:new Date().toISOString().slice(0,10)}});toast("Текст сохранён")}catch(err){toast("Не удалось сохранить: нет прав или нет связи")}return}
+  if(t.dataset.dl){dl(reports.find(x=>x.id===t.dataset.dl));return}
+  if(t.id==="upBtn"){$("#upFile").click();return}
+  if(t.id==="feedAdd"){
+    const name=$("#feedName").value.trim(),url=$("#feedUrl").value.trim();
+    if(!name||!/^https:\/\/[^\s]+$/i.test(url)){toast("Укажите название и HTTPS-ссылку на RSS");return}
+    try{await db.collection("sources").doc("feed"+Date.now()).set({name,url,status:"ok",kind:"RSS/Atom",found:0});toast("Источник добавлен");tab="sources";render()}catch(e){toast("Не удалось сохранить источник")}
+    return}
+  if(t.dataset.src){if(!db)return;try{await db.collection("sources").doc(t.dataset.src).update({status:t.dataset.to,status_at:new Date().toISOString()});toast("Статус изменён")}catch(err){toast("Нет прав на изменение")}return}
+  if(t.id==="rqRefresh"){sendRequest("refresh",{});return}
+  if(t.id==="rqMore"){sendRequest("more",{});return}
+  if(t.id==="wAdd"){const a=$("#wAddr").value.trim();if(!a){toast("Введите адрес");return}const note=$("#wNote").value.trim();const wid="w"+Date.now();
+    try{await db.collection("watch").doc(wid).set({address:a,note,created_at:new Date().toISOString()})}catch(err){toast("Не удалось сохранить адрес");return}
+    $("#wAddr").value="";$("#wNote").value="";sendRequest("watch",{address:a,watch_id:wid,...(note?{note}:{})});return}
+  const armed=b=>{if(b.dataset.armed)return true;b.dataset.armed="1";const old=b.textContent;b.textContent="Точно удалить?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=old}},4000);return false};
+  if(t.dataset.oarch||t.dataset.ounarch){const id=t.dataset.oarch||t.dataset.ounarch;try{await db.collection("objects").doc(id).update({archived:!!t.dataset.oarch});if(t.dataset.oarch){openId=null;render()}toast(t.dataset.oarch?"Объект в архиве":"Объект возвращён")}catch(err){toast("Не удалось: нет прав или нет связи")}return}
+  if(t.dataset.odel){if(!armed(t))return;const id=t.dataset.odel;const o=[...objects,...archived].find(x=>x.id===id);
+    try{if(o)await db.collection("deleted").doc(id).set({address:o.address||"",area:o.area??null,urls:ls(o).map(l=>l.url).filter(Boolean),deleted_at:new Date().toISOString()});await db.collection("objects").doc(id).delete();openId=null;render();toast("Объект удалён")}catch(err){toast("Не удалось удалить")}return}
+  if(t.dataset.odelall){if(!armed(t))return;const ids=t.dataset.odelall.split(",");let n=0;
+    for(const id of ids){const o=objects.find(x=>x.id===id);try{if(o)await db.collection("deleted").doc(id).set({address:o.address||"",area:o.area??null,urls:ls(o).map(l=>l.url).filter(Boolean),deleted_at:new Date().toISOString()});await db.collection("objects").doc(id).delete();n++}catch(err){}}
+    toast("Удалено: "+n);return}
+  if(t.dataset.rarch||t.dataset.runarch){const id=t.dataset.rarch||t.dataset.runarch;try{await db.collection("reports").doc(id).update({archived:!!t.dataset.rarch});toast(t.dataset.rarch?"Отчёт в архиве":"Отчёт возвращён")}catch(err){toast("Не удалось: нет прав или нет связи")}return}
+  if(t.dataset.rdel){if(!armed(t))return;const r=reports.find(x=>x.id===t.dataset.rdel);
+    try{await db.collection("reports").doc(r.id).delete();if(r.asset_id&&assets){try{await assets.delete(r.asset_id)}catch(e){}}toast("Отчёт удалён")}catch(err){toast("Не удалось удалить")}return}
+  if(t.dataset.wsave){const a=$("#weAddr").value.trim();if(!a){toast("Адрес не может быть пустым");return}
+    try{await db.collection("watch").doc(t.dataset.wsave).update({address:a,note:$("#weNote").value.trim()});toast("Сохранено")}catch(err){toast("Не удалось сохранить")}return}
+  if(t.dataset.wcheck){const w=watch.find(x=>x.id===t.dataset.wcheck);if(w)sendRequest("watch",{address:w.address,watch_id:w.id,...(w.note?{note:w.note}:{})});return}
+  if(t.dataset.wdel){try{await db.collection("watch").doc(t.dataset.wdel).delete();openWatch=null;render();toast("Адрес снят с контроля")}catch(err){toast("Не удалось убрать адрес")}return}
+  if(t.dataset.agent){openAgentId=t.dataset.agent;render();scrollTo(0,0);return}
+  if(t.id==="chatSend"){ask(AGENTS.find(a=>a.id===openAgentId));return}});
+$("#view").addEventListener("change",async e=>{if(e.target.id!=="upFile")return;const f=e.target.files[0];e.target.value="";if(!f)return;
+  const ext=(f.name.split(".").pop()||"").toLowerCase();const type=ext==="pdf"?"application/pdf":ext==="csv"?"text/csv":null;
+  if(!type){toast("Можно загрузить PDF или CSV");return}$("#upNote").textContent="Загружаю…";
+  try{const up=await assets.upload(f,{type});await db.collection("reports").doc("u"+Date.now()).set({title:f.name.replace(/\.[^.]+$/,""),filename:f.name,date:new Date().toISOString(),kind:"upload",asset_id:up.id});toast("Загружено: "+f.name)}
+  catch(err){$("#upNote").textContent=err&&err.code==="too_large"?"Файл больше 20 МБ":"Не удалось загрузить файл"}});
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;openId=null;openAgentId=null;openWatch=null;sub=null;F.only=null;try{localStorage.setItem("tab",tab)}catch(e){}render();scrollTo(0,0)});
+try{const s=localStorage.getItem("tab");if(s&&["objects","reports","sources","stats","team"].includes(s))tab=s}catch(e){}
+render();
+
+(async()=>{
+  try{sample=await claude.use("sample")}catch(e){}
+  try{assets=await claude.use("assets")}catch(e){}
+  try{downloads=await claude.use("downloads")}catch(e){}
+  try{mcp=await claude.use("mcp")}catch(e){}
+  try{db=await claude.use("db")}catch(e){}
+  if(!db){loaded=true;$("#lastRun").textContent="База недоступна в этом просмотре";render();return}
+  const t=setTimeout(()=>{if(!loaded){loaded=true;$("#lastRun").textContent="База не отвечает, обновите страницу позже";render()}},10000);
+  const isTorgi=o=>/торги|tbankrot|cdtrf|efrsb|fedresurs|torgi\.gov/i.test((o.source||"")+" "+(o.url||""));
+  db.collection("objects").onSnapshot(s=>{clearTimeout(t);loaded=true;
+    const all=s.docs.map(d=>({id:d.id,...d.data()})).filter(o=>!isTorgi(o)&&o.type!=="Квартира");archived=all.filter(o=>o.archived);objects=all.filter(o=>!o.archived);
+    let n=0;[o=>!isShare(o)&&!stop(o),o=>isShare(o)&&!stop(o),stop].forEach(fn=>sortObjs(objects.filter(fn)).forEach(o=>{o.no=o.no||++n}));
+    if(tab!=="team")render()},()=>{clearTimeout(t);loaded=true;render()});
+  db.collection("sources").onSnapshot(s=>{sources=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="sources")render()});
+  db.collection("reports").onSnapshot(s=>{reports=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="reports")render()});
+  db.collection("agents").onSnapshot(s=>{agents={};s.docs.forEach(d=>agents[d.id]=d.data());if(tab==="team"&&!openAgentId)syncOffice()});
+  db.collection("log").orderBy("ts","desc").limit(80).onSnapshot(s=>{logs=s.docs.map(d=>d.data());if(tab==="team"&&!openAgentId)render()});
+  db.doc("meta/run").onSnapshot(d=>{const m=d.data&&d.data();meta=m||{};if(m&&m.last)$("#lastRun").textContent="Последний прогон: "+dt(m.last)});
+  db.collection("watch").onSnapshot(s=>{watch=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="objects"&&!openId)render()});
+  db.collection("requests").onSnapshot(s=>{requests=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="objects"&&!openId)render()});
+})();
+</script>
+
+</body></html>
