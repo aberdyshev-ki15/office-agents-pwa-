@@ -126,11 +126,11 @@ function collection(bucket){
 }
 function pollList(bucket,callback){
   const refresh=async()=>{try{const rows=await officeApi('/api/'+bucket);callback({docs:rows.map(row=>({id:row.id,data:()=>row}))})}catch(e){}};
-  refresh();setInterval(refresh,15000);
+  refresh();setInterval(()=>{if(!document.hidden)refresh()},5000);
 }
 function pollDoc(bucket,id,callback){
   const refresh=async()=>{try{const rows=await officeApi('/api/'+bucket);const row=rows.find(x=>x.id===id);callback({data:()=>row||null})}catch(e){}};
-  refresh();setInterval(refresh,15000);
+  refresh();setInterval(()=>{if(!document.hidden)refresh()},5000);
 }
 window.claude={use:async name=>{
  if(name==='db')return {collection,doc:path=>{const [bucket,id]=path.split('/');return collection(bucket).doc(id)}};
@@ -363,7 +363,12 @@ function person(a){const S=`var(${a.shirt})`,P="var(--pants)";return `<svg viewB
 const POS={};
 function viewTeam(){
   if(openAgentId)return viewAgent(AGENTS.find(a=>a.id===openAgentId));
-  return `<div class="card col"><b>Монитор выполнения</b><div class="t">Показаны только подтверждённые события собственного сервера «Офис агентов». Задача ChatGPT, которая запускается ежедневно в 09:00, пока не подключена к этому журналу. «Не запускался» не означает, что агент ChatGPT бездействует.</div><div class="t">${meta.last?'Последний серверный прогон: '+dt(meta.last):'Серверных запусков пока не зафиксировано'}</div></div>
+  const running=Object.values(agents).some(a=>a.status==="working");
+  return `<div class="card col"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><b>Живой офис</b><span class="pill ${running?'p-w':'p-z'}" style="font-size:12px">${running?'● идёт выполнение':'○ нет активного прогона'}</span></div>
+  <div class="t">Состояния обновляются автоматически каждые 5 секунд. Показываются только подтверждённые события собственного сервера.</div>
+  <div class="t">${meta.last?'Последний серверный прогон: '+dt(meta.last)+' · новых '+esc(meta.found??'—'):'Серверных запусков пока не зафиксировано'}</div>
+  <button class="main" id="officeRun" ${running?'disabled':''}>${running?'Поиск выполняется…':'Запустить поиск сейчас'}</button>
+  <div class="note w">Задача ChatGPT, работающая ежедневно в 09:00, пока не передаёт сюда журнал действий. Её активность здесь не отображается.</div></div>
   <div class="col" id="office">${AGENTS.map(a=>`<button class="desk" data-agent="${a.id}"><div class="scene">${person(a)}</div><div class="dinfo"><div><div style="font-weight:700">${a.name}</div><div class="t" data-task>${a.role}</div></div><span class="pill p-z" style="font-size:12px" data-st></span></div></button>`).join("")}</div>
   <details class="card" open><summary class="t" style="cursor:pointer;font-weight:700">Журнал действий${logs.length?" · "+logs.length:""}</summary>${logs.length?logs.slice(0,40).map(l=>`<div class="row"><div><b>${esc((AGENTS.find(a=>a.id===l.agent)||{}).name||l.agent)}:</b> ${esc(l.text)}</div><span class="t num">${dt(l.ts)}</span></div>`).join(""):`<div class="t">Здесь появятся действия сервера после запуска поиска.</div>`}</details>`}
 function syncOffice(){document.querySelectorAll("#office [data-agent]").forEach(el=>{const a=AGENTS.find(x=>x.id===el.dataset.agent);const s=agents[a.id]||{};const st=s.status||"idle";const pos=st==="idle"?"bed":"desk";
@@ -443,6 +448,10 @@ $("#view").addEventListener("click",async e=>{const t=e.target.closest("button,[
     try{await db.collection("watch").doc(t.dataset.wsave).update({address:a,note:$("#weNote").value.trim()});toast("Сохранено")}catch(err){toast("Не удалось сохранить")}return}
   if(t.dataset.wcheck){const w=watch.find(x=>x.id===t.dataset.wcheck);if(w)sendRequest("watch",{address:w.address,watch_id:w.id,...(w.note?{note:w.note}:{})});return}
   if(t.dataset.wdel){try{await db.collection("watch").doc(t.dataset.wdel).delete();openWatch=null;render();toast("Адрес снят с контроля")}catch(err){toast("Не удалось убрать адрес")}return}
+  if(t.id==="officeRun"){
+    t.disabled=true;t.textContent='Поиск запущен…';
+    try{const result=await officeApi('/api/run',{method:'POST'});toast('Новых объектов: '+result.new+'. Отчёт создан.')}catch(e){toast('Поиск не запустился: '+e.message)}
+    render();return}
   if(t.dataset.agent){openAgentId=t.dataset.agent;render();scrollTo(0,0);return}
   if(t.id==="chatSend"){ask(AGENTS.find(a=>a.id===openAgentId));return}});
 $("#view").addEventListener("change",async e=>{if(e.target.id!=="upFile")return;const f=e.target.files[0];e.target.value="";if(!f)return;
