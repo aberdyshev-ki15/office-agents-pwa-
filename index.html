@@ -96,18 +96,49 @@ nav svg{width:22px;height:22px;display:block;margin:0 auto 2px;fill:none;stroke:
 @keyframes wave{to{transform:rotate(-115deg)}}@keyframes shake{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 @keyframes zz{0%{opacity:0;transform:translate(0,0)}50%{opacity:.8}100%{opacity:0;transform:translate(6px,-10px)}}
 @media (prefers-reduced-motion:reduce){.scene *{animation:none!important;transition:none!important}}
+
+/* Боковая панель на широких экранах, нижнее меню на телефонах. */
+.nav-brand,.nav-section,.nav-team,.nav-footer{display:none}
+button:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+@media(min-width:960px){
+ body{padding:28px 28px 40px 284px}
+ .wrap{max-width:760px}
+ nav{top:0;right:auto;width:252px;display:flex;flex-direction:column;gap:5px;padding:28px 16px;overflow-y:auto;border-top:0;border-right:1px solid var(--line)}
+ .nav-brand{display:block;padding:0 12px 20px;font-size:19px;font-weight:800}
+ .nav-brand small{display:block;margin-top:5px;color:var(--mute);font-size:12px;font-weight:600}
+ nav button{display:flex;align-items:center;gap:11px;flex-shrink:0;text-align:left;font-size:14px;padding:11px 12px}
+ nav button svg{margin:0;width:21px;height:21px;flex-shrink:0}
+ nav button:hover{background:var(--bg)}
+ nav button.on{background:var(--accs)}
+ .nav-section{display:block;margin:21px 12px 6px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+ .nav-team{display:grid;gap:3px}
+ .nav-team button{width:100%;gap:10px}
+ .nav-avatar{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--bg);font-size:12px;font-weight:800;flex-shrink:0}
+ .nav-agent-copy{flex:1;min-width:0}
+ .nav-agent-copy small{display:block;margin-top:2px;color:var(--mute);font-size:11px;font-weight:400}
+ .nav-agent-state{width:7px;height:7px;border-radius:50%;background:var(--mute);flex-shrink:0}
+ .nav-agent-state.working{background:var(--amb)}
+ .nav-agent-state.done{background:var(--ok)}
+ .nav-agent-state.error{background:var(--red)}
+ .nav-footer{display:block;margin-top:auto;padding:24px 12px 0;color:var(--mute);font-size:11px}
+ .toast{left:calc(50% + 126px);bottom:24px}
+}
 </style>
 
 <div class="wrap">
   <div><h1>Офис агентов</h1><div class="t" id="lastRun">Комнаты, гостинки и доли · Красноярск</div></div>
   <div id="view"><p class="msg">Загружаю объекты…</p></div>
 </div>
-<nav>
+<nav aria-label="Главное меню">
+  <div class="nav-brand">Офис агентов<small>Недвижимость · Красноярск</small></div>
   <button data-t="objects" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Объекты</button>
   <button data-t="reports"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>Отчёты</button>
   <button data-t="sources"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Источники</button>
   <button data-t="stats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
   <button data-t="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14c2 .8 3 3 3 6"/></svg>Команда</button>
+  <div class="nav-section" id="navTeamTitle">Агенты</div>
+  <div class="nav-team" id="navTeam" role="group" aria-labelledby="navTeamTitle"></div>
+  <div class="nav-footer">Комнаты, гостинки и доли</div>
 </nav>
 <div class="toast" id="toast" hidden></div>
 
@@ -361,6 +392,24 @@ function person(a){const S=`var(${a.shirt})`,P="var(--pants)";return `<svg viewB
   <g class="p-head"><rect x="157" y="44" width="6" height="7" class="p-skin"/><circle cx="160" cy="38" r="10" class="p-skin"/>${hairOf(a,160,38)}<circle cx="163" cy="39" r="1.2" fill="#3b3632"/><circle cx="168" cy="39" r="1.2" fill="#3b3632"/>
   ${a.glasses?'<g fill="none" stroke="#3b3632" stroke-width="1"><circle cx="163" cy="39" r="2.8"/><circle cx="168.5" cy="39" r="2.8"/></g>':''}<path d="M163 43.5q2.5 1.6 5 0" stroke="#3b3632" stroke-width="1" fill="none" stroke-linecap="round"/></g></g></g></svg>`}
 const POS={};
+function syncSidebar(){
+ document.querySelectorAll("[data-side-agent]").forEach(el=>{
+  const a=AGENTS.find(a=>a.id===el.dataset.sideAgent);
+  const st=agents[a.id]?.status||"idle";
+  const selected=tab==="team"&&openAgentId===a.id;
+  el.classList.toggle("on",selected);
+  el.setAttribute("aria-pressed",String(selected));
+  const state=a.soon&&!agents[a.id]?.status?"скоро":(ST[st]||ST.idle);
+  el.querySelector(".nav-agent-state").className="nav-agent-state "+st;
+  el.setAttribute("aria-label",a.name+" — "+state);
+  el.title=a.role+" · "+state;
+ });
+ document.querySelectorAll("nav [data-t]").forEach(el=>{
+  if(el.dataset.t===tab)el.setAttribute("aria-current","page");
+  else el.removeAttribute("aria-current");
+ });
+}
+
 function viewTeam(){
   if(openAgentId)return viewAgent(AGENTS.find(a=>a.id===openAgentId));
   const running=Object.values(agents).some(a=>a.status==="working");
@@ -402,8 +451,8 @@ function render(){const V={objects:viewObjects,reports:viewReports,sources:viewS
   const ae=document.activeElement,focusId=ae&&ae.id&&ae.tagName==="TEXTAREA"?ae.id:null,sel=focusId?[ae.selectionStart,ae.selectionEnd]:null;
   $("#view").innerHTML=V[tab]();
   Object.entries(keep).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&!el.dataset.fresh)el.value=v});
-  if(focusId){const el=document.getElementById(focusId);if(el){el.focus();try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
-  if(tab==="team"&&!openAgentId)syncOffice()}
+  if(focusId){const el=document.getElementById(focusId);if(el){el.focus();try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}document.querySelectorAll("nav [data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  syncSidebar();if(tab==="team"&&!openAgentId)syncOffice()}
 $("#view").addEventListener("click",async e=>{const t=e.target.closest("button,[data-o]");if(!t)return;
   if(t.dataset.back!==undefined){if(openId)openId=null;else openAgentId=null;render();scrollTo(0,0);return}
   if(t.dataset.o){openId=t.dataset.o;const o=objects.find(x=>x.id===openId);if(o&&unseen(o)&&db){db.collection("objects").doc(o.id).update({seen_at:new Date().toISOString()}).catch(()=>{})}render();scrollTo(0,0);return}
@@ -459,7 +508,14 @@ $("#view").addEventListener("change",async e=>{if(e.target.id!=="upFile")return;
   if(!type){toast("Можно загрузить PDF или CSV");return}$("#upNote").textContent="Загружаю…";
   try{const up=await assets.upload(f,{type});await db.collection("reports").doc("u"+Date.now()).set({title:f.name.replace(/\.[^.]+$/,""),filename:f.name,date:new Date().toISOString(),kind:"upload",asset_id:up.id});toast("Загружено: "+f.name)}
   catch(err){$("#upNote").textContent=err&&err.code==="too_large"?"Файл больше 20 МБ":"Не удалось загрузить файл"}});
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;openId=null;openAgentId=null;openWatch=null;sub=null;F.only=null;try{localStorage.setItem("tab",tab)}catch(e){}render();scrollTo(0,0)});
+document.querySelectorAll("nav [data-t]").forEach(b=>b.onclick=()=>{tab=b.dataset.t;openId=null;openAgentId=null;openWatch=null;sub=null;F.only=null;try{localStorage.setItem("tab",tab)}catch(e){}render();scrollTo(0,0)});
+document.getElementById("navTeam").innerHTML=AGENTS.map(a=>`<button type="button" data-side-agent="${a.id}" aria-pressed="false"><span class="nav-avatar" aria-hidden="true">${a.name[0]}</span><span class="nav-agent-copy">${a.name}<small>${a.soon?"Скоро":a.role}</small></span><span class="nav-agent-state" aria-hidden="true"></span></button>`).join("");
+document.getElementById("navTeam").addEventListener("click",e=>{
+ const button=e.target.closest("[data-side-agent]");if(!button)return;
+ tab="team";openAgentId=button.dataset.sideAgent;openId=null;openWatch=null;sub=null;F.only=null;
+ try{localStorage.setItem("tab",tab)}catch(e){}
+ render();scrollTo(0,0);
+});
 try{const s=localStorage.getItem("tab");if(s&&["objects","reports","sources","stats","team"].includes(s))tab=s}catch(e){}
 render();
 
@@ -478,7 +534,7 @@ render();
     if(tab!=="team")render()},()=>{clearTimeout(t);loaded=true;render()});
   db.collection("sources").onSnapshot(s=>{sources=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="sources")render()});
   db.collection("reports").onSnapshot(s=>{reports=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="reports")render()});
-  db.collection("agents").onSnapshot(s=>{agents={};s.docs.forEach(d=>agents[d.id]=d.data());if(tab==="team"&&!openAgentId)syncOffice()});
+  db.collection("agents").onSnapshot(s=>{agents={};s.docs.forEach(d=>agents[d.id]=d.data());syncSidebar();if(tab==="team"&&!openAgentId)syncOffice()});
   db.collection("log").orderBy("ts","desc").limit(80).onSnapshot(s=>{logs=s.docs.map(d=>d.data());if(tab==="team"&&!openAgentId)render()});
   db.doc("meta/run").onSnapshot(d=>{const m=d.data&&d.data();meta=m||{};if(m&&m.last)$("#lastRun").textContent="Последний прогон: "+dt(m.last)});
   db.collection("watch").onSnapshot(s=>{watch=s.docs.map(d=>({id:d.id,...d.data()}));if(tab==="objects"&&!openId)render()});
