@@ -343,7 +343,7 @@ const AGENTS=[
  {id:"negotiator",name:"Переговорщик",role:"черновики сообщений",shirt:"--shirt5",hair:"short",tie:true},
  {id:"reporter",name:"Отчёты",role:"PDF и сводка",shirt:"--shirt6",hair:"bun",glasses:true},
  {id:"auction",name:"Торги",role:"подключим позже",shirt:"--shirt7",hair:"cap",soon:true}];
-const ST={idle:"отдыхает",working:"работает",done:"готово",error:"ошибка"};
+const ST={idle:"не запускался",working:"работает",done:"готово",error:"ошибка"};
 function hairOf(a,x,y){const c=`var(${a.shirt})`;return {short:`<path class="p-hair" d="M${x-10} ${y-6}q10-12 20 0v-3q-10-9-20 0z"/>`,cap:`<path d="M${x-12} ${y-7}q12-12 24 0z" fill="${c}"/><rect x="${x+6}" y="${y-9}" width="9" height="2.5" rx="1" fill="${c}"/>`,bun:`<path class="p-hair" d="M${x-10} ${y-6}q10-12 20 0v-3q-10-9-20 0z"/><circle class="p-hair" cx="${x}" cy="${y-16}" r="4"/>`,long:`<path class="p-hair" d="M${x-11} ${y+6}v-11q11-14 22 0v11h-3v-9q-8-6-16 0v9z"/>`,curly:`<g class="p-hair"><circle cx="${x-8}" cy="${y-7}" r="3.5"/><circle cx="${x-3}" cy="${y-10}" r="3.5"/><circle cx="${x+3}" cy="${y-10}" r="3.5"/><circle cx="${x+8}" cy="${y-7}" r="3.5"/></g>`}[a.hair]}
 function person(a){const S=`var(${a.shirt})`,P="var(--pants)";return `<svg viewBox="0 0 240 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
  <line class="p-floor" x1="0" y1="96" x2="240" y2="96"/><rect x="100" y="16" width="34" height="34" rx="3" fill="var(--card)" stroke="var(--line)" stroke-width="2"/><path d="M117 16v34M100 33h34" stroke="var(--line)" stroke-width="2"/>
@@ -363,9 +363,9 @@ function person(a){const S=`var(${a.shirt})`,P="var(--pants)";return `<svg viewB
 const POS={};
 function viewTeam(){
   if(openAgentId)return viewAgent(AGENTS.find(a=>a.id===openAgentId));
-  return `<div class="card t">Это не отдельные программы, а этапы работы одного агента. Человечек показывает, какой этап сейчас идёт: за столом — работает, в кровати — ждёт своего этапа, машет — закончил.</div>
+  return `<div class="card col"><b>Монитор выполнения</b><div class="t">Показаны только подтверждённые события собственного сервера «Офис агентов». Задача ChatGPT, которая запускается ежедневно в 09:00, пока не подключена к этому журналу. «Не запускался» не означает, что агент ChatGPT бездействует.</div><div class="t">${meta.last?'Последний серверный прогон: '+dt(meta.last):'Серверных запусков пока не зафиксировано'}</div></div>
   <div class="col" id="office">${AGENTS.map(a=>`<button class="desk" data-agent="${a.id}"><div class="scene">${person(a)}</div><div class="dinfo"><div><div style="font-weight:700">${a.name}</div><div class="t" data-task>${a.role}</div></div><span class="pill p-z" style="font-size:12px" data-st></span></div></button>`).join("")}</div>
-  <details class="card"><summary class="t" style="cursor:pointer;font-weight:700">Журнал действий${logs.length?" · "+logs.length:""}</summary>${logs.length?logs.slice(0,40).map(l=>`<div class="row"><div><b>${esc((AGENTS.find(a=>a.id===l.agent)||{}).name||l.agent)}:</b> ${esc(l.text)}</div><span class="t num">${dt(l.ts)}</span></div>`).join(""):`<div class="t">Здесь появятся действия агента.</div>`}</details>`}
+  <details class="card" open><summary class="t" style="cursor:pointer;font-weight:700">Журнал действий${logs.length?" · "+logs.length:""}</summary>${logs.length?logs.slice(0,40).map(l=>`<div class="row"><div><b>${esc((AGENTS.find(a=>a.id===l.agent)||{}).name||l.agent)}:</b> ${esc(l.text)}</div><span class="t num">${dt(l.ts)}</span></div>`).join(""):`<div class="t">Здесь появятся действия сервера после запуска поиска.</div>`}</details>`}
 function syncOffice(){document.querySelectorAll("#office [data-agent]").forEach(el=>{const a=AGENTS.find(x=>x.id===el.dataset.agent);const s=agents[a.id]||{};const st=s.status||"idle";const pos=st==="idle"?"bed":"desk";
   ["idle","working","done","error"].forEach(c=>el.classList.toggle(c,c===st));
   if(!POS[a.id]||!(el.classList.contains("pos-bed")||el.classList.contains("pos-desk"))&&POS[a.id]===pos){el.classList.add("pos-"+pos);POS[a.id]=pos}
